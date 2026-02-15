@@ -1,0 +1,374 @@
+// Software Development State Machine
+// See todo/requirements.md for full specification
+digraph dev_state_machine {
+
+    // Graph settings
+    rankdir=TB;
+    fontname="Helvetica";
+    fontsize=14;
+    label="Software Development State Machine";
+    labelloc=t;
+    compound=true;
+    nodesep=0.6;
+    ranksep=0.8;
+    splines=ortho;
+
+    // Default node style
+    node [
+        fontname="Helvetica",
+        fontsize=11,
+        style=filled,
+        shape=box,
+        rounded=true
+    ];
+
+    // Default edge style
+    edge [
+        fontname="Helvetica",
+        fontsize=9
+    ];
+
+    // ── Special States ──────────────────────────────────────────
+
+    idle [
+        label="idle",
+        fillcolor="#E0E0E0",
+        shape=doubleoctagon
+    ];
+
+    deployment_failure [
+        label="deployment-failure",
+        fillcolor="#FF6B6B",
+        fontcolor=white,
+        shape=octagon
+    ];
+
+    // ── Inner TDD Loop (Feature Branch) ─────────────────────────
+
+    subgraph cluster_tdd {
+        label="Feature Branch — TDD Inner Loop";
+        style=dashed;
+        color="#4A90D9";
+        fontcolor="#4A90D9";
+        fontsize=12;
+        bgcolor="#F0F7FF";
+
+        planning [
+            label="planning",
+            fillcolor="#AED6F1"
+        ];
+
+        decomposing [
+            label="decomposing",
+            fillcolor="#D5F5E3"
+        ];
+
+        test_listing [
+            label="test-listing",
+            fillcolor="#AED6F1"
+        ];
+
+        red [
+            label="red",
+            fillcolor="#F1948A",
+            fontcolor=white
+        ];
+
+        green [
+            label="green",
+            fillcolor="#82E0AA"
+        ];
+
+        refactor [
+            label="refactor",
+            fillcolor="#F9E79F"
+        ];
+
+        blocked [
+            label="blocked",
+            fillcolor="#D7BDE2",
+            shape=octagon
+        ];
+    }
+
+    // ── Promotion Pipeline (Outer Loop) ─────────────────────────
+
+    subgraph cluster_promotion {
+        label="Promotion Pipeline — Outer Loop";
+        style=dashed;
+        color="#27AE60";
+        fontcolor="#27AE60";
+        fontsize=12;
+        bgcolor="#F0FFF0";
+
+        pr_dev [
+            label="pr-dev",
+            fillcolor="#85C1E9"
+        ];
+
+        on_dev [
+            label="on-dev",
+            fillcolor="#76D7C4"
+        ];
+
+        pr_test [
+            label="pr-test",
+            fillcolor="#85C1E9"
+        ];
+
+        on_test [
+            label="on-test",
+            fillcolor="#76D7C4"
+        ];
+
+        manual_testing [
+            label="manual-testing",
+            fillcolor="#F5B041",
+            shape=box
+        ];
+
+        pr_main [
+            label="pr-main",
+            fillcolor="#85C1E9"
+        ];
+
+        complete [
+            label="complete",
+            fillcolor="#58D68D",
+            shape=doubleoctagon
+        ];
+    }
+
+    // ── Normal Flow Transitions ─────────────────────────────────
+
+    // T1: idle → planning
+    idle -> planning [
+        label="T1: select/create plan",
+        color="#333333"
+    ];
+
+    // T2: planning → decomposing
+    planning -> decomposing [
+        label="T2: plan too big",
+        color="#333333"
+    ];
+
+    // T3: planning → test-listing
+    planning -> test_listing [
+        label="T3: plan ready",
+        color="#333333"
+    ];
+
+    // T4: decomposing → idle
+    decomposing -> idle [
+        label="T4: children created\nparent → /todo",
+        color="#333333"
+    ];
+
+    // T5: test-listing → red
+    test_listing -> red [
+        label="T5: first test written\n(failing)",
+        color="#333333"
+    ];
+
+    // T6: red → green
+    red -> green [
+        label="T6: test passes",
+        color="#27AE60"
+    ];
+
+    // T7: green → red
+    green -> red [
+        label="T7: next test\n(failing)",
+        color="#E74C3C"
+    ];
+
+    // T8: green → refactor
+    green -> refactor [
+        label="T8: simpler\nsolution exists",
+        color="#F39C12"
+    ];
+
+    // T9: green → pr-dev
+    green -> pr_dev [
+        label="T9: all tests done\nquality gates pass",
+        color="#27AE60"
+    ];
+
+    // T10: refactor → red
+    refactor -> red [
+        label="T10: next test\n(refactoring done)",
+        color="#E74C3C",
+        style=dashed
+    ];
+
+    // T11: refactor → pr-dev
+    refactor -> pr_dev [
+        label="T11: all tests done\nquality gates pass",
+        color="#27AE60",
+        style=dashed
+    ];
+
+    // T12: pr-dev → on-dev
+    pr_dev -> on_dev [
+        label="T12: PR merged",
+        color="#27AE60"
+    ];
+
+    // T13: on-dev → pr-test
+    on_dev -> pr_test [
+        label="T13: deploy verified",
+        color="#27AE60"
+    ];
+
+    // T14: pr-test → on-test
+    pr_test -> on_test [
+        label="T14: PR merged",
+        color="#27AE60"
+    ];
+
+    // T15: on-test → manual-testing
+    on_test -> manual_testing [
+        label="T15: deploy verified",
+        color="#27AE60"
+    ];
+
+    // T16: manual-testing → pr-main
+    manual_testing -> pr_main [
+        label="T16: manual tests\napproved",
+        color="#27AE60"
+    ];
+
+    // T17: pr-main → complete
+    pr_main -> complete [
+        label="T17: PR merged\ndeployed to prod",
+        color="#27AE60"
+    ];
+
+    // ── Regression Transitions ──────────────────────────────────
+
+    // T18: refactor → red (regression)
+    refactor -> red [
+        label="T18: regression!",
+        color="#E74C3C",
+        style=bold,
+        penwidth=2
+    ];
+
+    // T19: green → red (regression)
+    green -> red [
+        label="T19: regression!",
+        color="#E74C3C",
+        style=bold,
+        penwidth=2
+    ];
+
+    // ── Blocker Transitions ─────────────────────────────────────
+
+    // T20-T24: any TDD state → blocked
+    planning -> blocked [
+        label="T20: blocker",
+        color="#8E44AD",
+        style=dashed
+    ];
+
+    test_listing -> blocked [
+        label="T21: blocker",
+        color="#8E44AD",
+        style=dashed
+    ];
+
+    red -> blocked [
+        label="T22: blocker",
+        color="#8E44AD",
+        style=dashed
+    ];
+
+    green -> blocked [
+        label="T23: blocker",
+        color="#8E44AD",
+        style=dashed
+    ];
+
+    refactor -> blocked [
+        label="T24: blocker",
+        color="#8E44AD",
+        style=dashed
+    ];
+
+    // T25: blocked → previous state
+    blocked -> planning [
+        label="T25: resolved",
+        color="#8E44AD",
+        style=dotted
+    ];
+
+    // T30: blocked triggers auto-select
+    blocked -> idle [
+        label="T30: auto-select\nnext plan",
+        color="#8E44AD",
+        style=dotted
+    ];
+
+    // ── Deployment Failure Transitions ──────────────────────────
+
+    // T26: on-dev → deployment-failure
+    on_dev -> deployment_failure [
+        label="T26: deploy fails",
+        color="#C0392B",
+        style=bold,
+        penwidth=2
+    ];
+
+    // T27: on-test → deployment-failure
+    on_test -> deployment_failure [
+        label="T27: deploy fails",
+        color="#C0392B",
+        style=bold,
+        penwidth=2
+    ];
+
+    // T28: complete (deploy) → deployment-failure
+    pr_main -> deployment_failure [
+        label="T28: deploy fails",
+        color="#C0392B",
+        style=bold,
+        penwidth=2
+    ];
+
+    // T29: deployment-failure → planning (fix plan)
+    deployment_failure -> planning [
+        label="T29: fix plan created\n(highest priority)",
+        color="#C0392B",
+        style=bold,
+        penwidth=2
+    ];
+
+    // ── Legend ───────────────────────────────────────────────────
+
+    subgraph cluster_legend {
+        label="Legend";
+        style=filled;
+        fillcolor=white;
+        color="#CCCCCC";
+        fontsize=10;
+
+        node [shape=plaintext, fillcolor=white, fontsize=9];
+
+        legend [label=<
+            <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="4">
+                <TR><TD ALIGN="LEFT"><B>Line Styles</B></TD></TR>
+                <TR><TD ALIGN="LEFT">─── solid: normal flow</TD></TR>
+                <TR><TD ALIGN="LEFT">- - dashed: conditional / alternate path</TD></TR>
+                <TR><TD ALIGN="LEFT">··· dotted: recovery / return</TD></TR>
+                <TR><TD ALIGN="LEFT">━━ bold red: failure / regression</TD></TR>
+                <TR><TD ALIGN="LEFT"> </TD></TR>
+                <TR><TD ALIGN="LEFT"><B>Colors</B></TD></TR>
+                <TR><TD ALIGN="LEFT">Green edges: forward progress</TD></TR>
+                <TR><TD ALIGN="LEFT">Red edges: regressions / failures</TD></TR>
+                <TR><TD ALIGN="LEFT">Purple edges: blocker transitions</TD></TR>
+                <TR><TD ALIGN="LEFT">Dark red edges: deployment failures</TD></TR>
+            </TABLE>
+        >];
+    }
+}
