@@ -1,0 +1,54 @@
+digraph CodeStateMachine {
+    label="Code State Machine (TDD Inner Loop)"
+    labelloc="t"
+    fontsize=16
+    fontname="Helvetica"
+    rankdir=TB
+    node [fontname="Helvetica", fontsize=11]
+    edge [fontname="Helvetica", fontsize=9]
+
+    // Entry/exit points
+    entry_plan [label="← Plan Machine\n(ready)", shape=doubleoctagon, style=filled, fillcolor="#E8F5E9", fontsize=10]
+    exit_merge [label="→ Merge Machine\n(PR created)", shape=doubleoctagon, style=filled, fillcolor="#E8F5E9", fontsize=10]
+
+    // States
+    red [label="red", shape=box, style="rounded,filled", fillcolor="#FFCDD2"]
+    green [label="green", shape=box, style="rounded,filled", fillcolor="#C8E6C9"]
+    refactor [label="refactor", shape=box, style="rounded,filled", fillcolor="#FFF9C4"]
+    blocked [label="blocked", shape=box, style="rounded,filled", fillcolor="#E0E0E0"]
+
+    // Entry
+    entry_plan -> red [label="C1: first test written"]
+
+    // TDD cycle
+    red -> green [label="C2: test passes"]
+    green -> red [label="C3: next failing test"]
+    green -> refactor [label="C4: simpler solution"]
+    refactor -> red [label="C6: next failing test\nC8: regression", color="#D32F2F"]
+    green -> red [label="C9: regression", style=dotted, color="#D32F2F"]
+
+    // Exit to Merge
+    green -> exit_merge [label="C5: all tests done\nquality gates pass"]
+    refactor -> exit_merge [label="C7: all tests done\nquality gates pass"]
+
+    // Blocker transitions
+    red -> blocked [label="C10: blocker", style=dashed]
+    green -> blocked [label="C11: blocker", style=dashed]
+    refactor -> blocked [label="C12: blocker", style=dashed]
+    blocked -> red [label="C13: resolved\n(to previous)", style=dashed, color="#388E3C"]
+
+    // Legend
+    subgraph cluster_legend {
+        label="Legend"
+        style=filled
+        fillcolor="#FAFAFA"
+        fontsize=10
+        node [shape=plaintext, fontsize=9]
+        l1 [label="Red = failing test"]
+        l2 [label="Green = all tests passing"]
+        l3 [label="Yellow = refactoring"]
+        l4 [label="Gray = blocked"]
+        l5 [label="Dotted red = regression"]
+        l6 [label="Dashed = blocker transitions"]
+    }
+}

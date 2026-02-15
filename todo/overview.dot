@@ -1,0 +1,113 @@
+digraph OverviewStateMachines {
+    label="Development Process — Four State Machines"
+    labelloc="t"
+    fontsize=18
+    fontname="Helvetica"
+    rankdir=LR
+    node [fontname="Helvetica", fontsize=11]
+    edge [fontname="Helvetica", fontsize=10]
+    compound=true
+
+    // Plan Machine
+    subgraph cluster_plan {
+        label="Plan Machine\n(repo-resident state)"
+        style=filled
+        fillcolor="#E3F2FD"
+        color="#1565C0"
+        fontsize=12
+
+        p_idle [label="idle", shape=box, style="rounded,filled", fillcolor="#E0E0E0"]
+        p_planning [label="planning", shape=box, style="rounded,filled", fillcolor="#BBDEFB"]
+        p_decomposing [label="decomposing", shape=box, style="rounded,filled", fillcolor="#BBDEFB"]
+        p_test_listing [label="test-listing", shape=box, style="rounded,filled", fillcolor="#BBDEFB"]
+        p_ready [label="ready", shape=box, style="rounded,filled", fillcolor="#C8E6C9"]
+        p_blocked [label="blocked", shape=box, style="rounded,filled", fillcolor="#FFCDD2"]
+
+        p_idle -> p_planning
+        p_planning -> p_decomposing
+        p_planning -> p_test_listing
+        p_decomposing -> p_idle
+        p_test_listing -> p_ready
+        p_planning -> p_blocked [style=dashed]
+        p_blocked -> p_planning [style=dashed]
+    }
+
+    // Code Machine
+    subgraph cluster_code {
+        label="Code Machine\n(repo-resident state)"
+        style=filled
+        fillcolor="#FFF3E0"
+        color="#E65100"
+        fontsize=12
+
+        c_red [label="red", shape=box, style="rounded,filled", fillcolor="#FFCDD2"]
+        c_green [label="green", shape=box, style="rounded,filled", fillcolor="#C8E6C9"]
+        c_refactor [label="refactor", shape=box, style="rounded,filled", fillcolor="#FFF9C4"]
+        c_blocked [label="blocked", shape=box, style="rounded,filled", fillcolor="#E0E0E0"]
+
+        c_red -> c_green
+        c_green -> c_red
+        c_green -> c_refactor
+        c_refactor -> c_red
+        c_red -> c_blocked [style=dashed]
+        c_blocked -> c_red [style=dashed]
+    }
+
+    // Merge Machine
+    subgraph cluster_merge {
+        label="Merge Machine\n(GitHub-derived state)"
+        style=filled
+        fillcolor="#E8F5E9"
+        color="#2E7D32"
+        fontsize=12
+
+        m_pr_open [label="pr-open", shape=box, style="rounded,filled", fillcolor="#BBDEFB"]
+        m_reviewing [label="reviewing", shape=box, style="rounded,filled", fillcolor="#BBDEFB"]
+        m_changes [label="changes\nrequested", shape=box, style="rounded,filled", fillcolor="#FFF9C4"]
+        m_approved [label="approved", shape=box, style="rounded,filled", fillcolor="#C8E6C9"]
+        m_merged [label="merged", shape=box, style="rounded,filled", fillcolor="#C8E6C9", peripheries=2]
+        m_blocked [label="blocked", shape=box, style="rounded,filled", fillcolor="#FFCDD2"]
+
+        m_pr_open -> m_reviewing
+        m_reviewing -> m_approved
+        m_reviewing -> m_changes
+        m_changes -> m_reviewing
+        m_approved -> m_merged
+        m_pr_open -> m_blocked [style=dashed]
+        m_blocked -> m_pr_open [style=dashed]
+    }
+
+    // Promote Machine
+    subgraph cluster_promote {
+        label="Promote Machine\n(GitHub-derived state)"
+        style=filled
+        fillcolor="#F3E5F5"
+        color="#6A1B9A"
+        fontsize=12
+
+        r_deploying [label="deploying", shape=box, style="rounded,filled", fillcolor="#BBDEFB"]
+        r_deployed [label="deployed", shape=box, style="rounded,filled", fillcolor="#BBDEFB"]
+        r_validating [label="validating", shape=box, style="rounded,filled", fillcolor="#FFF9C4"]
+        r_promoted [label="promoted", shape=box, style="rounded,filled", fillcolor="#C8E6C9"]
+        r_failed [label="failed", shape=box, style="rounded,filled", fillcolor="#FFCDD2", penwidth=2]
+        r_complete [label="complete", shape=box, style="rounded,filled", fillcolor="#C8E6C9", peripheries=2]
+
+        r_deploying -> r_deployed
+        r_deployed -> r_validating
+        r_validating -> r_promoted
+        r_promoted -> r_complete
+        r_deploying -> r_failed [color="#D32F2F"]
+        r_validating -> r_failed [color="#D32F2F"]
+    }
+
+    // Inter-machine transitions (forward)
+    p_ready -> c_red [label="test lists\ncomplete", lhead=cluster_code, ltail=cluster_plan, style=bold, color="#1565C0", penwidth=2]
+    c_green -> m_pr_open [label="PR created\n(quality gates pass)", lhead=cluster_merge, ltail=cluster_code, style=bold, color="#E65100", penwidth=2]
+    m_merged -> r_deploying [label="deployment\ntriggered", lhead=cluster_promote, ltail=cluster_merge, style=bold, color="#2E7D32", penwidth=2]
+
+    // Inter-machine transitions (backward / looping)
+    r_promoted -> m_pr_open [label="PR for\nnext env", style=dashed, color="#6A1B9A", penwidth=1.5]
+    r_failed -> p_planning [label="fix plan\ncreated", style=bold, color="#D32F2F", penwidth=2]
+    m_changes -> c_red [label="major\nrework", style=dashed, color="#D32F2F"]
+    m_blocked -> c_red [label="major\nfix needed", style=dashed, color="#D32F2F"]
+}

@@ -1,0 +1,58 @@
+digraph PromoteStateMachine {
+    label="Promote State Machine (GitHub-Derived)"
+    labelloc="t"
+    fontsize=16
+    fontname="Helvetica"
+    rankdir=TB
+    node [fontname="Helvetica", fontsize=11]
+    edge [fontname="Helvetica", fontsize=9]
+
+    // Entry/exit points
+    entry_merge [label="← Merge Machine\n(PR merged)", shape=doubleoctagon, style=filled, fillcolor="#E8F5E9", fontsize=10]
+    exit_merge [label="→ Merge Machine\n(PR for next env)", shape=doubleoctagon, style=filled, fillcolor="#E8F5E9", fontsize=10]
+    exit_plan [label="→ Plan Machine\n(fix plan created)", shape=doubleoctagon, style=filled, fillcolor="#FFCDD2", fontsize=10]
+
+    // States
+    deploying [label="deploying", shape=box, style="rounded,filled", fillcolor="#BBDEFB"]
+    deployed [label="deployed", shape=box, style="rounded,filled", fillcolor="#BBDEFB"]
+    validating [label="validating", shape=box, style="rounded,filled", fillcolor="#FFF9C4"]
+    promoted [label="promoted", shape=box, style="rounded,filled", fillcolor="#C8E6C9"]
+    failed [label="failed", shape=box, style="rounded,filled", fillcolor="#FFCDD2", penwidth=2]
+    complete [label="complete", shape=box, style="rounded,filled", fillcolor="#C8E6C9", peripheries=2]
+
+    // Normal flow
+    entry_merge -> deploying [label="R1: deployment triggered"]
+    deploying -> deployed [label="R2: deployment succeeds"]
+    deployed -> validating [label="R4: checks initiated"]
+    validating -> promoted [label="R5: validation passes"]
+    promoted -> exit_merge [label="R7: PR for next env\n(if not production)"]
+    promoted -> complete [label="R8: production validated"]
+
+    // Failure paths
+    deploying -> failed [label="R3: deployment fails", color="#D32F2F"]
+    validating -> failed [label="R6: validation fails", color="#D32F2F"]
+    failed -> exit_plan [label="R9: fix plan created\n(blocks all work)", style=bold, color="#D32F2F"]
+
+    // Annotation
+    subgraph cluster_note {
+        label="Runs once per environment"
+        style=dashed
+        fontsize=10
+        color="#757575"
+        note [label="dev → test → main\nEach is an independent\nPromote instance", shape=note, style=filled, fillcolor="#FFF9C4", fontsize=9]
+    }
+
+    // Legend
+    subgraph cluster_legend {
+        label="Legend"
+        style=filled
+        fillcolor="#FAFAFA"
+        fontsize=10
+        node [shape=plaintext, fontsize=9]
+        l1 [label="Blue = deployment in progress"]
+        l2 [label="Yellow = validating"]
+        l3 [label="Green = promoted/complete"]
+        l4 [label="Red = failed (blocks all work)"]
+        l5 [label="Double border = terminal state"]
+    }
+}

@@ -1,0 +1,53 @@
+digraph PlanStateMachine {
+    label="Plan State Machine"
+    labelloc="t"
+    fontsize=16
+    fontname="Helvetica"
+    rankdir=TB
+    node [fontname="Helvetica", fontsize=11]
+    edge [fontname="Helvetica", fontsize=9]
+
+    // Entry/exit points
+    entry [label="Entry\n(new plan or\nblocker resolved)", shape=point, width=0.3]
+    exit_code [label="→ Code Machine", shape=doubleoctagon, style=filled, fillcolor="#E8F5E9", fontsize=10]
+    exit_idle [label="→ idle\n(select next plan)", shape=doubleoctagon, style=filled, fillcolor="#E0E0E0", fontsize=10]
+
+    // States
+    idle [label="idle", shape=box, style="rounded,filled", fillcolor="#E0E0E0"]
+    planning [label="planning", shape=box, style="rounded,filled", fillcolor="#BBDEFB"]
+    decomposing [label="decomposing", shape=box, style="rounded,filled", fillcolor="#BBDEFB"]
+    test_listing [label="test-listing", shape=box, style="rounded,filled", fillcolor="#BBDEFB"]
+    ready [label="ready", shape=box, style="rounded,filled", fillcolor="#C8E6C9"]
+    blocked [label="blocked", shape=box, style="rounded,filled", fillcolor="#FFCDD2"]
+
+    // Normal transitions
+    entry -> idle [style=invis]
+    idle -> planning [label="P1: select/create plan"]
+    planning -> decomposing [label="P2: too large"]
+    planning -> test_listing [label="P3: ready for tests"]
+    decomposing -> exit_idle [label="P4: children created"]
+    test_listing -> ready [label="P5: test lists complete"]
+    ready -> exit_code [label="P6: first test written"]
+
+    // Blocker transitions
+    planning -> blocked [label="P7: blocker", style=dashed, color="#D32F2F"]
+    decomposing -> blocked [label="P8: blocker", style=dashed, color="#D32F2F"]
+    test_listing -> blocked [label="P9: blocker", style=dashed, color="#D32F2F"]
+    blocked -> planning [label="P10: resolved\n(to previous state)", style=dashed, color="#388E3C"]
+    blocked -> decomposing [style=invis]  // layout aid
+    blocked -> test_listing [style=invis]  // layout aid
+
+    // Legend
+    subgraph cluster_legend {
+        label="Legend"
+        style=filled
+        fillcolor="#FAFAFA"
+        fontsize=10
+        node [shape=plaintext, fontsize=9]
+        l1 [label="Blue = active planning states"]
+        l2 [label="Green = ready to exit"]
+        l3 [label="Gray = idle"]
+        l4 [label="Red = blocked"]
+        l5 [label="Dashed = blocker transitions"]
+    }
+}

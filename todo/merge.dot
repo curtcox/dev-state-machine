@@ -1,0 +1,51 @@
+digraph MergeStateMachine {
+    label="Merge State Machine (GitHub-Derived)"
+    labelloc="t"
+    fontsize=16
+    fontname="Helvetica"
+    rankdir=TB
+    node [fontname="Helvetica", fontsize=11]
+    edge [fontname="Helvetica", fontsize=9]
+
+    // Entry/exit points
+    entry_code [label="← Code Machine\nor ← Promote Machine\n(PR created)", shape=doubleoctagon, style=filled, fillcolor="#E8F5E9", fontsize=10]
+    exit_promote [label="→ Promote Machine\n(deployment triggered)", shape=doubleoctagon, style=filled, fillcolor="#E8F5E9", fontsize=10]
+    exit_code [label="→ Code Machine\n(rework needed)", shape=doubleoctagon, style=filled, fillcolor="#FFCDD2", fontsize=10]
+
+    // States
+    pr_open [label="pr-open", shape=box, style="rounded,filled", fillcolor="#BBDEFB"]
+    reviewing [label="reviewing", shape=box, style="rounded,filled", fillcolor="#BBDEFB"]
+    changes_requested [label="changes-\nrequested", shape=box, style="rounded,filled", fillcolor="#FFF9C4"]
+    approved [label="approved", shape=box, style="rounded,filled", fillcolor="#C8E6C9"]
+    merged [label="merged", shape=box, style="rounded,filled", fillcolor="#C8E6C9", peripheries=2]
+    blocked [label="blocked", shape=box, style="rounded,filled", fillcolor="#FFCDD2"]
+
+    // Normal flow
+    entry_code -> pr_open [label="M1: PR created"]
+    pr_open -> reviewing [label="M2: review started"]
+    reviewing -> approved [label="M4: approved"]
+    reviewing -> changes_requested [label="M5: changes requested"]
+    changes_requested -> reviewing [label="M6: changes pushed"]
+    approved -> merged [label="M8: PR merged"]
+    merged -> exit_promote [label="M11: deployment triggered"]
+
+    // Failure paths
+    pr_open -> blocked [label="M3: CI fails", style=dashed, color="#D32F2F"]
+    blocked -> pr_open [label="M9: fix pushed", style=dashed, color="#388E3C"]
+    blocked -> exit_code [label="M10: major fix needed", style=dashed, color="#D32F2F"]
+    changes_requested -> exit_code [label="M7: major rework", style=dashed, color="#D32F2F"]
+
+    // Legend
+    subgraph cluster_legend {
+        label="Legend"
+        style=filled
+        fillcolor="#FAFAFA"
+        fontsize=10
+        node [shape=plaintext, fontsize=9]
+        l1 [label="Blue = in progress"]
+        l2 [label="Green = approved/merged"]
+        l3 [label="Yellow = needs changes"]
+        l4 [label="Red = blocked/exit to Code"]
+        l5 [label="Double border = terminal state"]
+    }
+}
