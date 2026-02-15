@@ -122,6 +122,10 @@ Each environment pass is an independent instance:
 | `promoted` | All checks passed, environment healthy |
 | `complete` | Production deployment verified, all monitors green |
 
+## Concurrency
+
+- The system is single-threaded. Only one plan is actively being worked across all machines at any given time.
+
 ## Deployment Failure Rules
 
 1. **Deployment failures block all work.** This is the highest priority — everything stops.

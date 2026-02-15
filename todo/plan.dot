@@ -9,6 +9,7 @@ digraph PlanStateMachine {
 
     // Entry/exit points
     entry [label="Entry\n(new plan or\nblocker resolved)", shape=point, width=0.3]
+    entry_code [label="← Code Machine\n(plan flaw found)", shape=doubleoctagon, style=filled, fillcolor="#FFCDD2", fontsize=10]
     exit_code [label="→ Code Machine", shape=doubleoctagon, style=filled, fillcolor="#E8F5E9", fontsize=10]
     exit_idle [label="→ idle\n(select next plan)", shape=doubleoctagon, style=filled, fillcolor="#E0E0E0", fontsize=10]
 
@@ -29,13 +30,16 @@ digraph PlanStateMachine {
     test_listing -> ready [label="P5: test lists complete"]
     ready -> exit_code [label="P6: first test written"]
 
+    // Re-entry from Code machine
+    entry_code -> planning [label="P11: plan revision\nneeded", style=bold, color="#D32F2F"]
+
     // Blocker transitions
     planning -> blocked [label="P7: blocker", style=dashed, color="#D32F2F"]
     decomposing -> blocked [label="P8: blocker", style=dashed, color="#D32F2F"]
     test_listing -> blocked [label="P9: blocker", style=dashed, color="#D32F2F"]
     blocked -> planning [label="P10: resolved\n(to previous state)", style=dashed, color="#388E3C"]
-    blocked -> decomposing [style=invis]  // layout aid
-    blocked -> test_listing [style=invis]  // layout aid
+    blocked -> decomposing [label="P10", style=dashed, color="#388E3C"]
+    blocked -> test_listing [label="P10", style=dashed, color="#388E3C"]
 
     // Legend
     subgraph cluster_legend {

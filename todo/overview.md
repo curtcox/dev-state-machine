@@ -42,7 +42,7 @@ In practice, the current git branch plus GitHub PR/deployment status tells you e
 
 | From | To | Trigger |
 |------|----|---------|
-| Plan | Code | Plan has acceptance criteria and complete test lists for all applicable test types. |
+| Plan | Code | Plan has acceptance criteria and complete test lists for all applicable test types. First failing test written. |
 | Code | Merge | All tests passing, quality gates met. Developer/agent creates PR. |
 | Merge | Promote | PR merged to target environment branch. CI/CD deployment triggered. |
 | Promote | (done) | Deployed and validated in production. Plan moved to `/done/`. |
@@ -53,8 +53,7 @@ In practice, the current git branch plus GitHub PR/deployment status tells you e
 |------|----|---------|
 | Code | Plan | Fundamental flaw in plan discovered during coding. Plan needs revision. |
 | Merge | Code | CI checks fail, review requests changes that require code rework. |
-| Promote | Code | Deployment failure. Fix created as new high-priority plan entering Plan → Code. |
-| Promote | Plan | Deployment failure reveals design flaw. New plan needed. |
+| Promote | Plan | Deployment failure. Highest-priority fix plan auto-created, enters Plan machine, flows through normal Plan → Code → Merge → Promote. |
 
 ## Bug and Hotfix Handling
 
@@ -71,10 +70,7 @@ Priority and urgency are metadata on the plan, not structural elements of any st
 
 ## Concurrency Model
 
-- **At most one plan is actively being worked** in Plan or Code machines (the TDD states require focused attention).
-- **Multiple plans may be in Merge simultaneously** (waiting on CI, reviews).
-- **Multiple plans may be in Promote simultaneously** (waiting on deployments, validation).
-- **Multiple plans may be blocked** in Plan or Code.
+- **One plan at a time.** The system is single-threaded. Only one plan is actively being worked across all four machines at any given time.
 - **Deployment failure overrides everything**: when Promote enters `failed`, a new highest-priority plan is auto-created, and no other plan may progress until it is resolved.
 
 ### Priority Resolution
@@ -83,7 +79,7 @@ When the system needs to select the next plan for active work:
 
 1. If a deployment-failure plan exists → work on that (highest priority).
 2. Otherwise, select the highest-priority non-blocked plan.
-3. If all plans are blocked or in Merge/Promote → idle.
+3. If all plans are blocked → idle.
 
 ## State Storage
 

@@ -110,4 +110,5 @@ digraph OverviewStateMachines {
     r_failed -> p_planning [label="fix plan\ncreated", style=bold, color="#D32F2F", penwidth=2]
     m_changes -> c_red [label="major\nrework", style=dashed, color="#D32F2F"]
     m_blocked -> c_red [label="major\nfix needed", style=dashed, color="#D32F2F"]
+    c_red -> p_planning [label="plan flaw\ndiscovered", style=dashed, color="#D32F2F"]
 }

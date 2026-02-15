@@ -80,6 +80,9 @@ An external dependency or impediment prevents coding progress.
 | C11 | `green` | `blocked` | Blocker identified | Same as C10. |
 | C12 | `refactor` | `blocked` | Blocker identified | Same as C10. |
 | C13 | `blocked` | *(previous state)* | Blocker resolved | Returns to TDD state before blocking. |
+| C14 | `red` | *(exits to Plan machine)* | Fundamental plan flaw discovered | Developer/agent determines the plan is flawed and cannot be fixed by code changes alone. Flaw details and progress recorded in `code-state.md`. |
+| C15 | `green` | *(exits to Plan machine)* | Fundamental plan flaw discovered | Same as C14. |
+| C16 | `refactor` | *(exits to Plan machine)* | Fundamental plan flaw discovered | Same as C14. |
 
 ## Invalid Transitions
 
@@ -88,6 +91,25 @@ An external dependency or impediment prevents coding progress.
 | `red` | `refactor` | Cannot refactor when a test is failing. Must go green first. |
 | `red` | *(Merge machine)* | Cannot create PR with a failing test. |
 | `refactor` | *(Merge machine)* with failing tests | Regression during refactor must be fixed first. |
+| `blocked` | *(Plan machine)* | Cannot discover a plan flaw while suspended. Unblock first (C13), then assess in an active TDD state. |
+
+## Backward Transition to Plan Machine
+
+When a fundamental plan flaw is discovered during coding (C14, C15, C16):
+
+1. `code-state.md` is updated to record: the flaw description, the TDD state at time of exit, and the test list progress (e.g., "3/7 tests implemented").
+2. The plan file in `/doing/` is annotated with a "Revision Needed" section describing the discovered flaw.
+3. Test code already written is preserved on the feature branch. It is not deleted.
+4. The commit recording this transition bundles the state file change per standard commit rules. Message format: `fix(plan-x): return to planning — fundamental flaw [state → Plan]`.
+
+This transition is a **judgment call** by the developer or agent. No automated check can determine that a plan is fundamentally flawed. Examples of fundamental flaws:
+
+- Acceptance criteria are contradictory or impossible to satisfy.
+- The plan assumes system architecture that turns out to be wrong.
+- The approach is technically infeasible as discovered during implementation.
+- Requirements are ambiguous and need clarification before coding can proceed.
+
+This is distinct from a **blocker** (C10–C12). A blocker is an external impediment that will be resolved; a fundamental plan flaw means the plan itself must change.
 
 ## Quality Gates
 
@@ -119,6 +141,10 @@ Tests should generally be implemented in this order within the TDD cycle:
 4. Acceptance tests
 5. End-to-end tests
 6. Manual tests (defined during test-listing, executed later during Promote validation)
+
+## Concurrency
+
+- The system is single-threaded. Only one plan is actively being worked across all machines at any given time.
 
 ## Commit Rules
 

@@ -10,6 +10,7 @@ digraph CodeStateMachine {
     // Entry/exit points
     entry_plan [label="← Plan Machine\n(ready)", shape=doubleoctagon, style=filled, fillcolor="#E8F5E9", fontsize=10]
     exit_merge [label="→ Merge Machine\n(PR created)", shape=doubleoctagon, style=filled, fillcolor="#E8F5E9", fontsize=10]
+    exit_plan [label="→ Plan Machine\n(revision needed)", shape=doubleoctagon, style=filled, fillcolor="#FFCDD2", fontsize=10]
 
     // States
     red [label="red", shape=box, style="rounded,filled", fillcolor="#FFCDD2"]
@@ -36,6 +37,13 @@ digraph CodeStateMachine {
     green -> blocked [label="C11: blocker", style=dashed]
     refactor -> blocked [label="C12: blocker", style=dashed]
     blocked -> red [label="C13: resolved\n(to previous)", style=dashed, color="#388E3C"]
+    blocked -> green [label="C13", style=dashed, color="#388E3C"]
+    blocked -> refactor [label="C13", style=dashed, color="#388E3C"]
+
+    // Backward transition to Plan machine
+    red -> exit_plan [label="C14: plan flaw", style=bold, color="#D32F2F"]
+    green -> exit_plan [label="C15: plan flaw", style=bold, color="#D32F2F"]
+    refactor -> exit_plan [label="C16: plan flaw", style=bold, color="#D32F2F"]
 
     // Legend
     subgraph cluster_legend {

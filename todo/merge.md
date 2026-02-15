@@ -78,7 +78,7 @@ The PR cannot proceed due to CI failures, merge conflicts, or other impediments.
 
 | # | From | To | Trigger | Conditions |
 |---|---|---|---|---|
-| M1 | *(entry from Code machine)* | `pr-open` | PR created | Developer/agent creates PR. CI checks triggered. |
+| M1 | *(entry from Code or Promote machine)* | `pr-open` | PR created | Developer/agent creates PR. CI checks triggered. First instance enters from Code (feature → dev). Subsequent instances enter from Promote (dev → test, test → main). |
 | M2 | `pr-open` | `reviewing` | Review started | Reviewer begins examining code. |
 | M3 | `pr-open` | `blocked` | CI checks fail | Automated checks fail. Requires fixes. |
 | M4 | `reviewing` | `approved` | Review approved | All required reviewers approve. CI checks pass. |
@@ -112,6 +112,10 @@ Each PR-to-merge cycle is an independent instance of the Merge machine.
 | `approved` | All required reviews approved, all checks passing |
 | `merged` | PR status is "merged" |
 | `blocked` | Checks failing, merge conflicts, or branch protection blocking |
+
+## Concurrency
+
+- The system is single-threaded. Only one plan is actively being worked across all machines at any given time.
 
 ## Branch Rules
 

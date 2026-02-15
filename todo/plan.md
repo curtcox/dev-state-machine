@@ -19,7 +19,7 @@ No plans are active. The developer/agent has no planning work to do.
 
 | | |
 |---|---|
-| **Entry Criteria** | No plans in `/doing/` and no plans in `/todo/`, OR all plans are blocked/in-promotion and `/todo/` is empty. |
+| **Entry Criteria** | No plans in `/doing/` and no plans in `/todo/`, OR all plans are blocked and `/todo/` is empty. |
 | **Exit Criteria** | A new plan is created or a blocker is resolved. |
 | **Invariants** | Plan state file shows no active plans. |
 
@@ -31,7 +31,7 @@ A plan is being written or refined.
 |---|---|
 | **Entry Criteria** | A plan has been selected for work. Plan file exists in `/doing/`. Feature branch created. |
 | **Exit Criteria** | Plan is detailed enough to write test lists, OR plan is identified as too large and must be decomposed. |
-| **Invariants** | Plan file is in `/doing/`. State file reflects this plan as active. No test code has been written for this plan. |
+| **Invariants** | Plan file is in `/doing/`. State file reflects this plan as active. No test code has been written for this plan, unless re-entering via P11 (from Code machine), in which case existing test code is preserved on the feature branch pending revision. |
 
 ### `decomposing`
 
@@ -89,13 +89,14 @@ A plan has an unresolved blocker or unmet dependency preventing planning progres
 | P8 | `decomposing` | `blocked` | Blocker identified | Same as P7. |
 | P9 | `test-listing` | `blocked` | Blocker identified | Same as P7. |
 | P10 | `blocked` | *(previous state)* | Blocker resolved | Plan returns to state before blocking. |
+| P11 | *(entry from Code machine)* | `planning` | Plan revision needed | Fundamental flaw discovered during coding. Plan file remains in `/doing/`. Existing test code preserved on feature branch. Previous test lists retained for reference during revision. |
 
 ## Invalid Transitions
 
 | From | To | Reason |
 |---|---|---|
 | `planning` | `ready` | Must write test lists first. Cannot skip `test-listing`. |
-| `test-listing` | `planning` | If the plan needs revision, it should go through `blocked` or be decomposed. |
+| `test-listing` | `planning` | Internal transition not allowed. If the plan needs revision while still in the Plan machine, it should go through `blocked` or be decomposed. Cross-machine re-entry from Code uses P11. |
 | `idle` | `test-listing` | Must go through `planning` first to ensure plan quality. |
 
 ## Plan File Format
@@ -163,6 +164,10 @@ Plans are markdown files with this structure:
 3. A parent plan cannot complete until all child plans are complete.
 4. The state machine operates on leaf plans only (no TDD on plans with children).
 5. Plans are actual markdown files that move between `/todo/`, `/doing/`, and `/done/`.
+
+## Concurrency
+
+- The system is single-threaded. Only one plan is actively being worked across all machines at any given time.
 
 ## Directory Structure
 
