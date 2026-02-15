@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# dsm — Development State Machine CLI
+#
+# Stateless tool for querying, explaining, and advancing
+# the Plan, Code, Merge, and Promote state machines.
+
+set -euo pipefail
+
+# Resolve the repo root (where dsm is invoked from, or git root)
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+export REPO_ROOT
+
+# Resolve lib directory relative to this script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LIB_DIR="$(cd "${SCRIPT_DIR}/../lib/dsm" && pwd)"
+
+# Source all library files
+source "${LIB_DIR}/constants.sh"
+source "${LIB_DIR}/output.sh"
+source "${LIB_DIR}/state_plan.sh"
+source "${LIB_DIR}/state_code.sh"
+source "${LIB_DIR}/state_merge.sh"
+source "${LIB_DIR}/state_promote.sh"
+source "${LIB_DIR}/queries.sh"
+source "${LIB_DIR}/transitions.sh"
+source "${LIB_DIR}/actions.sh"
+source "${LIB_DIR}/consistency.sh"
+source "${LIB_DIR}/catalogs.sh"
+source "${LIB_DIR}/cli.sh"
+
+# Initialize transition table
+_init_transitions
+
+# Run
+main "$@"
