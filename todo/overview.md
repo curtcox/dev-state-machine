@@ -45,6 +45,7 @@ In practice, the current git branch plus GitHub PR/deployment status tells you e
 | Plan | Code | Plan has acceptance criteria and complete test lists for all applicable test types. First failing test written. |
 | Code | Merge | All tests passing, quality gates met. Developer/agent creates PR. |
 | Merge | Promote | PR merged to target environment branch. CI/CD deployment triggered. |
+| Promote | Merge | Validated in non-production environment. PR auto-created for next environment. |
 | Promote | (done) | Deployed and validated in production. Plan moved to `/done/`. |
 
 ### Backward Transitions (Failures)
