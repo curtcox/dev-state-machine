@@ -13,37 +13,38 @@ digraph CodeStateMachine {
     exit_plan [label="→ Plan Machine\n(revision needed)", shape=doubleoctagon, style=filled, fillcolor="#FFCDD2", fontsize=10]
 
     // States
-    red [label="red", shape=box, style="rounded,filled", fillcolor="#FFCDD2"]
-    green [label="green", shape=box, style="rounded,filled", fillcolor="#C8E6C9"]
+    red [label="red\n(unit test targeted)", shape=box, style="rounded,filled", fillcolor="#FFCDD2"]
+    green [label="green\n(unit test passes;\ndriving tests may still fail)", shape=box, style="rounded,filled", fillcolor="#C8E6C9"]
     refactor [label="refactor", shape=box, style="rounded,filled", fillcolor="#FFF9C4"]
     blocked [label="blocked", shape=box, style="rounded,filled", fillcolor="#E0E0E0"]
 
-    // Entry
-    entry_plan -> red [label="C1: first test written"]
+    // Entry: driving tests written first, then first unit test
+    entry_plan -> red [label="C1: acceptance/E2E/integration\ndriving tests written first;\nfirst unit test written & failing"]
 
     // TDD cycle
-    red -> green [label="C2: test passes"]
-    green -> red [label="C3: next failing test"]
-    green -> refactor [label="C4: simpler solution"]
-    refactor -> red [label="C6: next failing test\nC8: regression", color="#D32F2F"]
-    green -> red [label="C9: regression", style=dotted, color="#D32F2F"]
+    red -> green [label="C2: targeted unit test passes\n(driving tests may still fail)"]
+    green -> red [label="C3: next failing unit test"]
+    green -> red [label="C4: property test noticed\n& written", style=dashed, color="#6A1B9A"]
+    green -> refactor [label="C5: simpler solution"]
+    refactor -> red [label="C7: next test to write\nC9: regression", color="#D32F2F"]
+    green -> red [label="C10: regression", style=dotted, color="#D32F2F"]
 
-    // Exit to Merge
-    green -> exit_merge [label="C5: all tests done\nquality gates pass"]
-    refactor -> exit_merge [label="C7: all tests done\nquality gates pass"]
+    // Exit to Merge: only when ALL tests pass (including driving tests)
+    green -> exit_merge [label="C6: all unit tests done\nALL driving tests pass\nquality gates pass"]
+    refactor -> exit_merge [label="C8: all tests done\nALL driving tests pass\nquality gates pass"]
 
     // Blocker transitions
-    red -> blocked [label="C10: blocker", style=dashed]
-    green -> blocked [label="C11: blocker", style=dashed]
-    refactor -> blocked [label="C12: blocker", style=dashed]
-    blocked -> red [label="C13: resolved\n(to previous)", style=dashed, color="#388E3C"]
-    blocked -> green [label="C13", style=dashed, color="#388E3C"]
-    blocked -> refactor [label="C13", style=dashed, color="#388E3C"]
+    red -> blocked [label="C11: blocker", style=dashed]
+    green -> blocked [label="C12: blocker", style=dashed]
+    refactor -> blocked [label="C13: blocker", style=dashed]
+    blocked -> red [label="C14: resolved\n(to previous)", style=dashed, color="#388E3C"]
+    blocked -> green [label="C14", style=dashed, color="#388E3C"]
+    blocked -> refactor [label="C14", style=dashed, color="#388E3C"]
 
     // Backward transition to Plan machine
-    red -> exit_plan [label="C14: plan flaw", style=bold, color="#D32F2F"]
-    green -> exit_plan [label="C15: plan flaw", style=bold, color="#D32F2F"]
-    refactor -> exit_plan [label="C16: plan flaw", style=bold, color="#D32F2F"]
+    red -> exit_plan [label="C15: plan flaw", style=bold, color="#D32F2F"]
+    green -> exit_plan [label="C16: plan flaw", style=bold, color="#D32F2F"]
+    refactor -> exit_plan [label="C17: plan flaw", style=bold, color="#D32F2F"]
 
     // Legend
     subgraph cluster_legend {
@@ -52,11 +53,13 @@ digraph CodeStateMachine {
         fillcolor="#FAFAFA"
         fontsize=10
         node [shape=plaintext, fontsize=9]
-        l1 [label="Red = failing test"]
-        l2 [label="Green = all tests passing"]
+        l1 [label="Red = targeted unit test failing"]
+        l2 [label="Green = unit test passes (driving tests may still fail)"]
         l3 [label="Yellow = refactoring"]
         l4 [label="Gray = blocked"]
         l5 [label="Dotted red = regression"]
-        l6 [label="Dashed = blocker transitions"]
+        l6 [label="Dashed = blocker or property test transitions"]
+        l7 [label="Driving tests: acceptance/E2E/integration (written first, may stay failing)"]
+        l8 [label="Property tests: written opportunistically, treated as targeted tests"]
     }
 }
